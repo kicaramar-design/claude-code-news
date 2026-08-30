@@ -1,11 +1,11 @@
 ---
 name: news-report
-description: Generate today's Japanese news-roundup report for one or all categories (ai, sonpo, jinzai) in this repo's fixed format, commit it, and — when run as part of the daily automated routine — push and notify Slack. Use when asked to generate/update a claude-code-news daily report, or when running the scheduled daily automation.
+description: Generate today's Japanese news-roundup report for one or all categories (ai, sonpo, jinzai) in this repo's fixed format, commit it, and — when run as part of the daily automated routine — push and notify Slack. Use when asked to generate/update a Codex-news daily report, or when running the scheduled daily automation.
 ---
 
 # 日次ニュースレポート生成
 
-このリポジトリ（claude-code-news）は毎朝6時(JST)に3カテゴリのニュースレポートを自動生成・コミット・push し、Slackで完了通知する運用。
+このリポジトリ（Codex-news）は毎朝6時(JST)に3カテゴリのニュースレポートを自動生成・コミット・push し、Slackで完了通知する運用。
 
 ## カテゴリと検索観点
 
@@ -58,13 +58,13 @@ description: Generate today's Japanese news-roundup report for one or all catego
    作成した見出し一覧を返させる。3つとも完了したら、メインセッション側でその結果を集約して
    以降の手順に進む（コミット・push・Slack通知はサブエージェントには行わせず、メインセッションが
    1回で行う）。
-3. まとめて1コミットにする。作者情報が未設定の場合は `git config user.name "claude-code-news-bot"` と `git config user.email "noreply@anthropic.com"` をこのリポジトリ内にローカル設定してからコミットする。
+3. まとめて1コミットにする。作者情報が未設定の場合は `git config user.name "Codex-news-bot"` と `git config user.email "noreply@anthropic.com"` をこのリポジトリ内にローカル設定してからコミットする。
 4. `git push origin main` でリモートにpushする。
 5. 集約した3カテゴリの内容をもとに、そのセッションのペルソナ（バディ）の口調で各カテゴリのレポート内容について一言感想を考える（各カテゴリ1〜2文程度、内容の要点や気づきに触れる）。
 6. Slackの `slack_send_message` ツールで、channel_id `C0BTU93BB60`（`#news-stand` チャンネル）に完了通知を送る。メッセージ冒頭に `<@U0BU82A6U6L>`（K Ishihara宛メンション）を付ける。通知には次を含める。
    - 対象日付
    - push成否
-   - 成功時: 作成した3レポートのファイルパス（`reports/jinzai/<DATE>.md` など）とそれぞれの見出し一覧、各カテゴリについてのバディの一言感想（手順5）、リポジトリへのリンク（`https://github.com/kicaramar-design/claude-code-news`）
+   - 成功時: 作成した3レポートのファイルパス（`reports/jinzai/<DATE>.md` など）とそれぞれの見出し一覧、各カテゴリについてのバディの一言感想（手順5）、リポジトリへのリンク（`https://github.com/kicaramar-design/Codex-news`）
    - 失敗時: 何が失敗したか（git pushのエラー内容など）と必要な対応
    - いずれかのカテゴリで直近ニュースの件数が少なかった場合はその旨も一言添える
    - この通知は、コミット・pushがスキップされた場合（同一内容で変更なしの場合）も含めて毎回必ず送信する
