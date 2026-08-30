@@ -49,7 +49,12 @@ description: Generate today's Japanese news-roundup report for one or all catego
 日次の自動実行では、このスキルを `ai` / `sonpo` / `jinzai` の3カテゴリすべてに対して実行し、さらに以下を行う。
 
 1. 日本時間(Asia/Tokyo)での本日の日付をYYYY-MM-DD形式で取得する（例: `TZ=Asia/Tokyo date +%Y-%m-%d`）。
-2. 3カテゴリ分のレポートを上記フォーマットで作成・保存する。
+2. 3カテゴリ分のレポートを上記フォーマットで作成・保存する。`ai`/`sonpo`/`jinzai`の3カテゴリは
+   互いに独立しているため、`Agent`ツール（`general-purpose`）を3つ同時に起動して並列に処理する。
+   各サブエージェントには担当カテゴリ・対象日付・上記の検索観点と出力フォーマットを伝え、
+   Web検索・要約・`reports/<カテゴリ>/<日付>.md`への保存までを行わせ、作成した見出し一覧を
+   返させる。3つとも完了したら、メインセッション側でその結果を集約して以降の手順に進む
+   （コミット・push・Slack通知はサブエージェントには行わせず、メインセッションが1回で行う）。
 3. まとめて1コミットにする。作者情報が未設定の場合は `git config user.name "claude-code-news-bot"` と `git config user.email "noreply@anthropic.com"` をこのリポジトリ内にローカル設定してからコミットする。
 4. `git push origin main` でリモートにpushする。
 5. Slackの `slack_send_message` ツールで、channel_id `U0BU82A6U6L`（本人宛DM）に完了通知を送る。通知には次を含める。
