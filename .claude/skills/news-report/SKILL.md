@@ -61,10 +61,19 @@ description: Generate today's Japanese news-roundup report for one or all catego
 3. まとめて1コミットにする。作者情報が未設定の場合は `git config user.name "claude-code-news-bot"` と `git config user.email "noreply@anthropic.com"` をこのリポジトリ内にローカル設定してからコミットする。
 4. `git push origin main` でリモートにpushする。
 5. 集約した3カテゴリの内容をもとに、そのセッションのペルソナ（バディ）の口調で各カテゴリのレポート内容について一言感想を考える（各カテゴリ1〜2文程度、内容の要点や気づきに触れる）。
-6. Slackの `slack_send_message` ツールで、channel_id `C0BTU93BB60`（`#news-stand` チャンネル）に完了通知を送る。メッセージ冒頭に `<@U0BU82A6U6L>`（K Ishihara宛メンション）を付ける。通知には次を含める。
-   - 対象日付
-   - push成否
-   - 成功時: 作成した3レポートのファイルパス（`reports/jinzai/<DATE>.md` など）とそれぞれの見出し一覧、各カテゴリについてのバディの一言感想（手順5）、リポジトリへのリンク（`https://github.com/kicaramar-design/claude-code-news`）
-   - 失敗時: 何が失敗したか（git pushのエラー内容など）と必要な対応
-   - いずれかのカテゴリで直近ニュースの件数が少なかった場合はその旨も一言添える
-   - この通知は、コミット・pushがスキップされた場合（同一内容で変更なしの場合）も含めて毎回必ず送信する
+6. 完了通知はSlack Workflow BuilderのWebhook経由で送る（`slack_send_message` ツールは使わない。自分自身のSlackアカウントからの投稿だと、本人宛にメンションを付けてもSlackの仕様上ミュートされ通知が届かないため）。
+   a. Webhook URLの入手は次の優先順で行う（どの場合もリポジトリには絶対にコミットしない・ファイルに書き出さない）:
+      1. このスキルを呼び出したプロンプト（自動実行ルーチンの場合はルーチン設定内）に直接書かれていればそれを使う。
+      2. 環境変数 `SLACK_NEWS_WEBHOOK_URL` が設定されていればそれを使う。
+      3. ローカル手動実行時のみ、`C:\Users\kazus_3g70wzg\.claude\secrets\claude-code-news_slack_webhook.txt` の1行目を読む（クラウドの自動実行ではこのパスは存在しないため使えない）。
+      いずれも見つからない場合は通知をスキップせず、Webhook URLが見つからなかった旨を実行結果として報告する。
+   b. 通知本文を1つのテキストとして組み立てる。あなた宛のメンションはWorkflow側の固定テキストとして埋め込み済みなので、本文側に `<@...>` を含める必要はない。本文に含める内容:
+      - 対象日付
+      - push成否
+      - 成功時: 作成した3レポートのファイルパス（`reports/jinzai/<DATE>.md` など）とそれぞれの見出し一覧、各カテゴリについてのバディの一言感想（手順5）、リポジトリへのリンク（`https://github.com/kicaramar-design/claude-code-news`）
+      - 失敗時: 何が失敗したか（git pushのエラー内容など）と必要な対応
+      - いずれかのカテゴリで直近ニュースの件数が少なかった場合はその旨も一言
+   c. `{"message_text": "<組み立てた本文>"}` の形のJSONをWriteツールでスクラッチパッド配下の一時ファイルに書き出す（改行・特殊文字のエスケープ事故を避けるため、シェルでのヒアドキュメント組み立てはしない）。
+   d. `curl -sS -X POST -H "Content-Type: application/json" --data-binary @<一時JSONファイル> "<Webhook URL>"` でPOSTする。
+   e. curlが失敗した場合やHTTPエラーが返った場合は、原因をこのセッションの実行結果として報告する。
+   f. この通知は、コミット・pushがスキップされた場合（同一内容で変更なしの場合）も含めて毎回必ず送信する
