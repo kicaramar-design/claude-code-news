@@ -61,7 +61,7 @@ description: Generate today's Japanese news-roundup report for one or all catego
 3. まとめて1コミットにする。作者情報が未設定の場合は `git config user.name "claude-code-news-bot"` と `git config user.email "noreply@anthropic.com"` をこのリポジトリ内にローカル設定してからコミットする。
 4. `git push origin main` でリモートにpushする。
 5. 集約した3カテゴリの内容をもとに、そのセッションのペルソナ（バディ）の口調で各カテゴリのレポート内容について一言感想を考える（各カテゴリ1〜2文程度、内容の要点や気づきに触れる）。
-6. 完了通知はSlack Workflow BuilderのWebhook経由で送る（`slack_send_message` ツールは使わない。自分自身のSlackアカウントからの投稿だと、本人宛にメンションを付けてもSlackの仕様上ミュートされ通知が届かないため）。
+6. 完了通知はまずSlack Workflow BuilderのWebhook経由で送ることを試みる（自分自身のSlackアカウントからの投稿だと、本人宛にメンションを付けてもSlackの仕様上ミュートされ通知が届かないため、`slack_send_message` より優先する）。ただしクラウドの自動実行環境ではネットワークのegressポリシーにより `hooks.slack.com` へのcurlがブロックされる場合があることが判明している。その場合は必ずステップeのフォールバックで `slack_send_message` に切り替え、通知そのものが届かない事態は避ける。
    a. Webhook URLの入手は次の優先順で行う（どの場合もリポジトリには絶対にコミットしない・ファイルに書き出さない）:
       1. このスキルを呼び出したプロンプト（自動実行ルーチンの場合はルーチン設定内）に直接書かれていればそれを使う。
       2. 環境変数 `SLACK_NEWS_WEBHOOK_URL` が設定されていればそれを使う。
@@ -75,5 +75,5 @@ description: Generate today's Japanese news-roundup report for one or all catego
       - いずれかのカテゴリで直近ニュースの件数が少なかった場合はその旨も一言
    c. `{"message_text": "<組み立てた本文>"}` の形のJSONをWriteツールでスクラッチパッド配下の一時ファイルに書き出す（改行・特殊文字のエスケープ事故を避けるため、シェルでのヒアドキュメント組み立てはしない）。
    d. `curl -sS -X POST -H "Content-Type: application/json" --data-binary @<一時JSONファイル> "<Webhook URL>"` でPOSTする。
-   e. curlが失敗した場合やHTTPエラーが返った場合は、原因をこのセッションの実行結果として報告する。
-   f. この通知は、コミット・pushがスキップされた場合（同一内容で変更なしの場合）も含めて毎回必ず送信する
+   e. curlが失敗した場合（`CONNECT tunnel failed` 等のegress/ネットワークエラーを含む）やHTTPエラーが返った場合は、`mcp__claude_ai_Slack__slack_send_message` ツールでチャンネル `C0BTU93BB60` 宛に、本文冒頭に `<@U0BU82A6U6L>` を付けて同じ内容を送信する（フォールバック）。この場合、curlが失敗した旨と原因もこのセッションの実行結果として報告する。
+   f. この通知は、コミット・pushがスキップされた場合（同一内容で変更なしの場合）も含めて毎回必ず送信する（webhookとフォールバックのどちらか一方は必ず成功させる）
