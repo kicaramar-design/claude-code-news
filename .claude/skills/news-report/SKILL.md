@@ -77,3 +77,9 @@ description: Generate today's Japanese news-roundup report for one or all catego
    d. `curl -sS -X POST -H "Content-Type: application/json" --data-binary @<一時JSONファイル> "<Webhook URL>"` でPOSTする。
    e. curlが失敗した場合（`CONNECT tunnel failed` 等のegress/ネットワークエラーを含む）やHTTPエラーが返った場合は、`mcp__claude_ai_Slack__slack_send_message` ツールでチャンネル `C0BTU93BB60` 宛に、本文冒頭に `<@U0BU82A6U6L>` を付けて同じ内容を送信する（フォールバック）。この場合、curlが失敗した旨と原因もこのセッションの実行結果として報告する。
    f. この通知は、コミット・pushがスキップされた場合（同一内容で変更なしの場合）も含めて毎回必ず送信する（webhookとフォールバックのどちらか一方は必ず成功させる）
+7. 上記6のSlack通知に加えて、`PushNotification`ツールでスマホへの短いプッシュ通知も送る（Slack投稿はこれまで通り必ず行った上での追加通知であり、どちらか一方だけで済ませない）。
+   a. 手順6eのフォールバック（`slack_send_message`）を使った場合は、そのツール結果に含まれる`message_link`（投稿したメッセージへの直接リンク）を使う。
+   b. 手順6dのWebhookが成功した場合（`message_link`が得られない場合）は、代わりに固定のチャンネルリンク `https://ishihara-familyhq.slack.com/archives/C0BTU93BB60` を使う。
+   c. 通知本文は「claude-code-news: <対象日付>分レポート完了 → <リンク>」のように簡潔にまとめる（失敗時は「claude-code-news: <対象日付>分レポート失敗 → <リンク>」のように状況を一言添える）。200文字以内・1行・マークダウン記法なしにする。
+   d. `status`パラメータは`"proactive"`を指定する。
+   e. この通知も、手順6fと同様に毎回必ず送信する。
