@@ -58,6 +58,7 @@ description: Generate today's Japanese news-roundup report for one or all catego
    作成した見出し一覧を返させる。3つとも完了したら、メインセッション側でその結果を集約して
    以降の手順に進む（コミット・push・Slack通知はサブエージェントには行わせず、メインセッションが
    1回で行う）。
+2.5. 古いレポートを `old/` に移す。`reports/<カテゴリ>/` 直下の `YYYY-MM-DD.md` をファイル名の日付で新しい順に並べ、直近3ファイル（本日分を含む）を残して、それ以外を `git mv` で `reports/<カテゴリ>/old/` に移す（`old/` が無ければ作成。`old/` 内のファイルは対象外）。3カテゴリすべてで行い、移動もステップ3の1コミットに含める。移動対象が無ければ何もしない。
 3. まとめて1コミットにする。作者情報が未設定の場合は `git config user.name "claude-code-news-bot"` と `git config user.email "noreply@anthropic.com"` をこのリポジトリ内にローカル設定してからコミットする。
 4. `git push origin main` でリモートにpushする。
 5. 集約した3カテゴリの内容をもとに、そのセッションのペルソナ（バディ）の口調で各カテゴリのレポート内容について一言感想を考える（各カテゴリ1〜2文程度、内容の要点や気づきに触れる）。
